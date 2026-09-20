@@ -2,8 +2,9 @@ import os
 import httpx
 from fastapi import FastAPI
 from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp.sse import  get_sse_router
 
-# Khởi tạo MCP Server
+# Khởi tạo MCP Server theo chuẩn mới
 mcp = FastMCP("telegram-assistant")
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -30,8 +31,12 @@ async def send_telegram_message(chat_id: str, message: str) -> str:
         except Exception as e:
             return f"Lỗi hệ thống: {str(e)}"
 
-# Tạo app FastAPI và tích hợp MCP tự động bằng hàm build_fastapi_app()
-app = mcp.build_fastapi_app()
+# Khởi tạo FastAPI app
+app = FastAPI(title="Xiaozhi Telegram MCP Endpoint")
+
+# Lấy router SSE theo đúng cấu trúc thư mục mới nhất của mcp v2.x
+sse_router = get_sse_router(mcp)
+app.include_router(sse_router, prefix="/mcp")
 
 if __name__ == "__main__":
     import uvicorn
